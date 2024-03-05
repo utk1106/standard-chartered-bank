@@ -1,0 +1,67 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: tfplan
+    jobs:
+      - job: plan
+        continueOnError: false
+        steps:
+          - task: TerraformInstaller@1
+            displayName: tfinstall
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTaskV4@4
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'b76e177a-cb53-46a5-b22a-1cd4ac134c70'
+              backendAzureRmResourceGroupName: 'scb-tfsate'
+              backendAzureRmStorageAccountName: 'scbtesttf'
+              backendAzureRmContainerName: 'scbtesttf'
+              backendAzureRmKey: 'prod.terraform.tfstate'
+          - task: TerraformTaskV4@4
+            displayName: validate
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+          - task: TerraformTaskV4@4
+            displayName: tfplan
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              environmentServiceNameAzureRM: 'b76e177a-cb53-46a5-b22a-1cd4ac134c70'
+  - stage: tfdeploy
+    condition: succeeded('tfplan')
+    dependsOn: tfplan
+    jobs:
+      - job: apply
+        steps:
+          - task: TerraformInstaller@1
+            displayName: tfinstall
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTaskV4@4
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'b76e177a-cb53-46a5-b22a-1cd4ac134c70'
+              backendAzureRmResourceGroupName: 'scb-tfsate'
+              backendAzureRmStorageAccountName: 'scbtesttf'
+              backendAzureRmContainerName: 'scbtesttf'
+              backendAzureRmKey: 'prod.terraform.tfstate'
+          - task: TerraformTaskV4@4
+            displayName: tfapply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              environmentServiceNameAzureRM: 'b76e177a-cb53-46a5-b22a-1cd4ac134c70'
