@@ -30,7 +30,7 @@ resource "azurerm_network_interface" "scbMarch" {
 }
 
 resource "azurerm_windows_virtual_machine" "scbMarch" {
-  name                = "scbMarch-machine"
+  name                = "scbVM-machine"
   resource_group_name = azurerm_resource_group.scbMarch.name
   location            = azurerm_resource_group.scbMarch.location
   size                = "Standard_F2"
